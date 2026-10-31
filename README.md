@@ -92,3 +92,11 @@ Add approved public project records to `assets/community-projects.json` and mirr
 Use where the research takes place, rather than automatically using the PI's institutional base. City-level locations are enough. When project and person pins overlap, the popup selector exposes all visible entries at that location; filters can also separate the layers. Keyboard activation, dragging, zooming and touch gestures continue to work. Long project details scroll within the popup.
 
 The map shows public project information only. Never put participant locations, application responses, private contact details or unpublished sensitive research details in these records.
+
+## Researched projects and member roles — October 31, 2026
+
+The map includes public-source research projects; historical studies are labeled as such. Funding years, publication years, and study durations are explicitly distinguished from calendar fieldwork dates. Exact field locations are never inferred from a PI's institution: country and regional markers state their precision in the popup. The `sources` array supplies links in Project sources; `verificationNotes` records editorial limits. `leadLabel` distinguishes a formal PI from a project or study lead when the public source does not establish a formal PI role.
+
+Members now have `roles: { foundingMember: true, steeringCommittee: false, workingGroups: [] }`. All 21 founders retain recognition. Set `steeringCommittee` to true only after appointment. Add a working-group name to `workingGroups` only after it is active; object entries `{ name: "Group name", active: false }` remain hidden. The shared `member-roles.js` renders multiple tags in map popups and founding-member cards. Never infer a GEFI role from an external institution's steering committee or advisory board.
+
+Keep the member array in `assets/community-members.json` synchronized with `community-member-data` in `community.html`, and the id/roles subset synchronized with `member-role-data` in `founding-members.html`. Keep project JSON synchronized as described above; always escape less-than characters before embedding JSON in HTML. Unconfirmed candidate projects and source notes are kept outside the public website in the sibling Project research audit folder.

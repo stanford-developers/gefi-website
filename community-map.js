@@ -114,21 +114,33 @@
     if (entry.type === 'member') name.href = entry.profile;
     popup.append(name);
     if (entry.type === 'project') {
-      if (entry.pi) popup.append(paragraph(`PI: ${Array.isArray(entry.pi) ? entry.pi.join(', ') : entry.pi}`));
+      if (entry.pi) popup.append(paragraph(`${entry.leadLabel || "PI"}: ${Array.isArray(entry.pi) ? entry.pi.join(', ') : entry.pi}`));
       if (entry.institution) popup.append(paragraph(entry.institution));
       popup.append(paragraph(locationText(entry),'popup-city'));
       if (entry.timeline) popup.append(paragraph(`Timeline: ${entry.timeline}`));
+      if (entry.locationNote) popup.append(paragraph(entry.locationNote,'popup-location-note'));
       if (entry.summary) popup.append(paragraph(entry.summary,'popup-summary'));
       const tag = document.createElement('span'); tag.className = 'project-tag';
-      tag.textContent = entry.status || 'Ongoing project'; popup.append(tag);
+      tag.textContent = entry.status || 'Research project'; popup.append(tag);
       // Public project links are optional and limited to ordinary web URLs.
-      if (/^https?:\/\//i.test(entry.url || '')) {
+      if (/^https?:\/\//i.test(entry.url || '') && !entry.sources?.length) {
         const link = document.createElement('a'); link.href = entry.url;
         link.className = 'popup-project-link'; link.textContent = 'About this project ↗'; popup.append(link);
       }
     } else {
       popup.append(paragraph(entry.institution),paragraph(locationText(entry),'popup-city'));
-      const tag = document.createElement('span'); tag.className = 'founder-tag'; tag.textContent = entry.tag; popup.append(tag);
+      popup.append(window.GEFIMemberRoles.render(entry));
+    }
+    if (entry.type === 'project' && entry.sources?.length) {
+      const sources = document.createElement('details'); sources.className = 'popup-sources';
+      const summary = document.createElement('summary'); summary.textContent = 'Project sources'; sources.append(summary);
+      const list = document.createElement('ul');
+      for (const source of entry.sources) {
+        if (!/^https?:\/\//i.test(source.url || '')) continue;
+        const item = document.createElement('li'); const link = document.createElement('a');
+        link.href = source.url; link.textContent = source.title; item.append(link); list.append(item);
+      }
+      sources.append(list); sources.addEventListener('toggle',positionPopup); popup.append(sources);
     }
     const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [];
     if (colocated.length > 1) {

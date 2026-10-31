@@ -387,3 +387,17 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .popup-project-link { display: block; font-size: 14px; margin-top: 12px; }
 
 .atlas-count span { display: block; }
+
+/* Founding recognition remains visible alongside any later GEFI appointments. */
+.member-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 9px; }
+.member-tags > span { margin-top: 0; }
+.role-tag { display: inline-block; font: 600 11px var(--sans); letter-spacing: .035em; text-transform: uppercase; padding: 3px 7px; }
+.role-tag--steering { color: #174f57; background: #e0efed; }
+.role-tag--working-group { color: #594813; background: #f2ecd8; }
+.profile-identity { min-width: 0; }
+.profile-identity .member-tags { justify-content: flex-start; }
+.member-popup .popup-location-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.popup-sources { margin-top: 12px; text-align: left; font-size: 13px; }
+.popup-sources summary { cursor: pointer; }
+.popup-sources ul { margin: 7px 0 0; padding-left: 16px; }
+.popup-sources li { margin-bottom: 5px; }
