@@ -1,33 +1,63 @@
-/* Public founding-member profiles only; application responses never enter this map. */
+/* Public, approved member profiles and project sites only; application responses stay private. */
 (() => {
   const svg = document.querySelector('#community-map');
   const source = document.querySelector('#community-member-data');
   if (!svg || !source) return;
   const members = JSON.parse(source.textContent);
+  const projects = JSON.parse(document.querySelector('#community-project-data')?.textContent || '[]');
+  const entries = members.map(member => ({...member, type:'member', key:`member:${member.id}`}));
+  // A project has one record and may have several research sites. Its PI's base
+  // does not imply where the project takes place.
+  for (const project of projects) {
+    for (const site of project.locations || []) {
+      if (!Number.isFinite(site.longitude) || !Number.isFinite(site.latitude) ||
+          Math.abs(site.longitude) > 180 || Math.abs(site.latitude) > 90) continue;
+      entries.push({...project, ...site, id:project.id, type:'project',
+        key:`project:${project.id}:${site.id}`, location:`project-${project.id}-${site.id}`});
+    }
+  }
   const menu = document.querySelector('#member-location');
   const pins = document.querySelector('#map-pins');
   const canvas = document.querySelector('.map-canvas');
   const popup = document.querySelector('#member-popup');
+  const peopleFilter = document.querySelector('#map-show-people');
+  const projectsFilter = document.querySelector('#map-show-projects');
+  const empty = document.querySelector('#map-empty');
   const ns = 'http://www.w3.org/2000/svg';
   const world = { x: 0, y: 0, width: 1080, height: 435 };
   let view = { ...world };
-  let activeMember = null;
+  let activeEntry = null;
   let placements = [];
-  const locations = [];
-  for (const member of members) {
-    let location = locations.find(item => item.id === member.location);
-    if (!location) {
-      location = { id: member.location, label: `${member.city}, ${member.country}`, x: (member.longitude + 180) * 3, y: (85 - member.latitude) * 3, members: [] };
-      locations.push(location);
+  let locations = [];
+  const coordinateKey = entry => `${entry.longitude.toFixed(5)},${entry.latitude.toFixed(5)}`;
+  const visibleEntries = () => entries.filter(entry => entry.type === 'member' ? peopleFilter.checked : projectsFilter.checked);
+  const locationText = entry => [entry.label, entry.city, entry.country].filter(Boolean).join(', ');
+  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const projectSites = entries.filter(entry => entry.type === 'project');
+  document.querySelector('#project-layer-count').textContent = projects.length;
+  document.querySelector('#people-layer-count').textContent = members.length;
+  document.querySelector('#atlas-project-count').textContent = `${plural(projects.length, 'project')} · ${plural(projectSites.length, 'research location')}`;
+  function updateLocations() {
+    const selected = menu.value;
+    locations = [];
+    for (const entry of visibleEntries()) {
+      const coordinates = coordinateKey(entry);
+      let location = locations.find(item => item.coordinates === coordinates);
+      if (!location) {
+        location = {id:entry.location, coordinates, label:[entry.city, entry.country].filter(Boolean).join(', '),
+          x:(entry.longitude+180)*3, y:(85-entry.latitude)*3, entries:[]};
+        locations.push(location);
+      }
+      location.entries.push(entry);
     }
-    location.members.push(member);
-  }
-  locations.sort((a, b) => a.label.localeCompare(b.label));
-  for (const location of locations) {
-    const option = document.createElement('option');
-    option.value = location.id;
-    option.textContent = `${location.label} (${location.members.length})`;
-    menu.append(option);
+    locations.sort((a,b) => a.label.localeCompare(b.label));
+    menu.replaceChildren(new Option('Starting view','overview'), new Option('All locations','all'));
+    for (const location of locations) menu.append(new Option(`${location.label} (${location.entries.length})`,location.id));
+    menu.value = [...menu.options].some(option => option.value === selected) ? selected : 'overview';
+    empty.hidden = visibleEntries().length > 0;
+    empty.textContent = !peopleFilter.checked && !projectsFilter.checked
+      ? 'Select People or Projects to see locations on the map.'
+      : 'Project locations will appear here as projects are added.';
   }
   function node(tag, attributes) {
     const element = document.createElementNS(ns, tag);
@@ -35,82 +65,91 @@
     return element;
   }
   function closePopup(restoreFocus = false) {
-    const previous = activeMember;
-    activeMember = null;
+    const previous = activeEntry;
+    activeEntry = null;
     popup.hidden = true;
     for (const pin of pins.querySelectorAll('.map-pin')) {
       pin.classList.remove('is-selected');
-      pin.setAttribute('aria-expanded', 'false');
+      pin.setAttribute('aria-expanded','false');
     }
-    if (restoreFocus && previous) pins.querySelector(`[data-member="${previous.id}"]`)?.focus();
+    if (restoreFocus && previous) [...pins.children].find(pin => pin.dataset.entry === previous.key)?.focus();
   }
   function positionPopup() {
-    if (!activeMember) return;
-    const placement = placements.find(p => p.member.id === activeMember.id);
+    if (!activeEntry) return;
+    const placement = placements.find(p => p.entry.key === activeEntry.key);
     if (!placement) { closePopup(); return; }
     const width = popup.offsetWidth;
     const height = popup.offsetHeight;
-    const left = Math.max(10, Math.min(canvas.clientWidth - width - 10, placement.px - width / 2));
-    let top = placement.py - height - 24;
-    if (top < 10) top = placement.py + 26;
-    top = Math.max(10, Math.min(canvas.clientHeight - height - 10, top));
+    const left = Math.max(10,Math.min(canvas.clientWidth-width-10,placement.px-width/2));
+    let top = placement.py-height-24;
+    if (top < 10) top = placement.py+26;
+    top = Math.max(10,Math.min(canvas.clientHeight-height-10,top));
     popup.style.left = `${left}px`;
     popup.style.top = `${top}px`;
   }
-  function openPopup(member, keyboard) {
-    activeMember = member;
+  function paragraph(text, className) {
+    const p = document.createElement('p');
+    p.textContent = text;
+    if (className) p.className = className;
+    return p;
+  }
+  function openPopup(entry, keyboard) {
+    activeEntry = entry;
     popup.replaceChildren();
-    popup.setAttribute('aria-label', member.name);
+    popup.classList.toggle('project-popup',entry.type === 'project');
+    popup.setAttribute('aria-label',entry.name);
     const close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'popup-close';
-    close.setAttribute('aria-label', 'Close member profile');
-    close.textContent = '×';
-    close.addEventListener('click', () => closePopup(true));
-    const image = document.createElement('img');
-    image.src = member.image;
-    image.alt = member.name;
-    image.width = 76;
-    image.height = 76;
-    const name = document.createElement('a');
-    name.href = member.profile;
-    name.className = 'popup-name';
-    name.textContent = member.name;
-    const institution = document.createElement('p');
-    institution.textContent = member.institution;
-    const city = document.createElement('p');
-    city.className = 'popup-city';
-    city.textContent = `${member.city}, ${member.country}`;
-    const tag = document.createElement('span');
-    tag.className = 'founder-tag';
-    tag.textContent = member.tag;
-    popup.append(close, image, name, institution, city, tag);
-    const colocated = locations.find(location => location.id === member.location).members;
-    if (colocated.length > 1) {
-      const label = document.createElement('label');
-      label.className = 'popup-colocated-label';
-      label.htmlFor = 'colocated-member';
-      label.textContent = `${colocated.length} members at this location`;
-      const picker = document.createElement('select');
-      picker.id = 'colocated-member';
-      for (const person of colocated) {
-        const option = document.createElement('option');
-        option.value = person.id;
-        option.textContent = person.name;
-        picker.append(option);
+    close.type = 'button'; close.className = 'popup-close';
+    close.setAttribute('aria-label', entry.type === 'project' ? 'Close project details' : 'Close member profile');
+    close.textContent = '×'; close.addEventListener('click',() => closePopup(true));
+    popup.append(close);
+    if (entry.type === 'member') {
+      const image = document.createElement('img');
+      image.src = entry.image; image.alt = entry.name; image.width = 76; image.height = 76;
+      image.addEventListener('load',positionPopup,{once:true});
+      popup.append(image);
+    }
+    const name = document.createElement(entry.type === 'member' ? 'a' : 'h3');
+    name.className = 'popup-name'; name.textContent = entry.name;
+    if (entry.type === 'member') name.href = entry.profile;
+    popup.append(name);
+    if (entry.type === 'project') {
+      if (entry.pi) popup.append(paragraph(`PI: ${Array.isArray(entry.pi) ? entry.pi.join(', ') : entry.pi}`));
+      if (entry.institution) popup.append(paragraph(entry.institution));
+      popup.append(paragraph(locationText(entry),'popup-city'));
+      if (entry.timeline) popup.append(paragraph(`Timeline: ${entry.timeline}`));
+      if (entry.summary) popup.append(paragraph(entry.summary,'popup-summary'));
+      const tag = document.createElement('span'); tag.className = 'project-tag';
+      tag.textContent = entry.status || 'Ongoing project'; popup.append(tag);
+      // Public project links are optional and limited to ordinary web URLs.
+      if (/^https?:\/\//i.test(entry.url || '')) {
+        const link = document.createElement('a'); link.href = entry.url;
+        link.className = 'popup-project-link'; link.textContent = 'About this project ↗'; popup.append(link);
       }
-      picker.value = member.id;
-      picker.addEventListener('change', () => {
-        openPopup(members.find(person => person.id === picker.value), false);
+    } else {
+      popup.append(paragraph(entry.institution),paragraph(locationText(entry),'popup-city'));
+      const tag = document.createElement('span'); tag.className = 'founder-tag'; tag.textContent = entry.tag; popup.append(tag);
+    }
+    const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [];
+    if (colocated.length > 1) {
+      const label = document.createElement('label'); label.className = 'popup-colocated-label';
+      label.htmlFor = 'colocated-entry';
+      const people = colocated.filter(item => item.type === 'member').length;
+      const sites = colocated.length-people;
+      label.textContent = [people ? `${people} ${people === 1 ? 'person' : 'people'}` : '',sites ? plural(sites,'project') : ''].filter(Boolean).join(' · ')+' at this location';
+      const picker = document.createElement('select'); picker.id = 'colocated-entry';
+      for (const other of colocated) picker.append(new Option(`${other.type === 'project' ? 'Project' : 'Person'}: ${other.name}`,other.key));
+      picker.value = entry.key;
+      picker.addEventListener('change',() => {
+        openPopup(entries.find(other => other.key === picker.value),false);
         popup.querySelector('select')?.focus();
       });
-      popup.append(label, picker);
+      popup.append(label,picker);
     }
     popup.hidden = false;
     for (const pin of pins.querySelectorAll('.map-pin')) {
-      const active = pin.dataset.member === member.id;
-      pin.classList.toggle('is-selected', active);
-      pin.setAttribute('aria-expanded', String(active));
+      const active = pin.dataset.entry === entry.key;
+      pin.classList.toggle('is-selected',active); pin.setAttribute('aria-expanded',String(active));
     }
     positionPopup();
     if (keyboard) close.focus();
@@ -118,43 +157,38 @@
   function draw() {
     const rect = svg.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
-    const height = view.width * rect.height / rect.width;
-    view.y += (view.height - height) / 2;
-    view.height = height;
-    svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.width} ${view.height}`);
-    const scale = rect.width / view.width;
-    placements = [];
-    pins.replaceChildren();
-    for (const member of members) {
-      const x = (member.longitude + 180) * 3;
-      const y = (85 - member.latitude) * 3;
-      if (x < view.x || x > view.x + view.width || y < view.y || y > view.y + view.height) continue;
-      placements.push({member,x,y,px:(x-view.x)*scale,py:(y-view.y)*scale});
-      const active = activeMember?.id === member.id;
-      // Every pin tip sits at the exact institutional coordinate, including overlaps.
-      const pin = node('g', {
+    const height = view.width*rect.height/rect.width;
+    view.y += (view.height-height)/2; view.height = height;
+    svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.width} ${view.height}`);
+    const scale = rect.width/view.width;
+    placements = []; pins.replaceChildren();
+    const shown = visibleEntries();
+    // Project symbols sit above people; the shared-location picker keeps both accessible.
+    for (const entry of shown) {
+      const x = (entry.longitude+180)*3, y = (85-entry.latitude)*3;
+      if (x < view.x || x > view.x+view.width || y < view.y || y > view.y+view.height) continue;
+      placements.push({entry,x,y,px:(x-view.x)*scale,py:(y-view.y)*scale});
+      const active = activeEntry?.key === entry.key;
+      const pin = node('g',{
         transform:`translate(${x} ${y}) scale(${1/scale})`,
-        class:`map-pin${active?' is-selected':''}`,role:'button',tabindex:'0',
-        'aria-label':`${member.name} — ${member.institution}, ${member.city}`,
+        class:`map-pin map-pin--${entry.type}${active?' is-selected':''}`, role:'button',tabindex:'0',
+        'aria-label':`${entry.type === 'project' ? 'Project' : 'Person'}: ${entry.name} — ${locationText(entry)}`,
         'aria-expanded':String(active),'aria-controls':'member-popup','aria-haspopup':'dialog',
-        'data-member':member.id,'data-longitude':member.longitude,'data-latitude':member.latitude
+        'data-entry':entry.key, [`data-${entry.type}`]:entry.id,
+        'data-longitude':entry.longitude,'data-latitude':entry.latitude
       });
-      const tooltip = node('title', {});
-      tooltip.textContent = `${member.name} · ${member.city}`;
-      pin.append(tooltip,node('path',{
-        d:'M0 0 C-3 -5 -12 -12 -12 -20 A12 12 0 1 1 12 -20 C12 -12 3 -5 0 0Z',class:'map-pin-shape'
-      }),node('circle',{cx:0,cy:-23,r:3,fill:'#fff','aria-hidden':'true'}),node('path',{
-        d:'M-5 -15 Q-5 -19 0 -19 Q5 -19 5 -15 Z',fill:'#fff','aria-hidden':'true'
-      }));
-      const colocated = locations.find(location => location.id === member.location).members;
-      if (colocated.length > 1 && colocated.at(-1).id === member.id) {
+      const tooltip = node('title',{}); tooltip.textContent = `${entry.name} · ${entry.city}`;
+      pin.append(tooltip,node('path',{d:'M0 0 C-3 -5 -12 -12 -12 -20 A12 12 0 1 1 12 -20 C12 -12 3 -5 0 0Z',class:'map-pin-shape'}));
+      if (entry.type === 'project') pin.append(node('path',{d:'M0 -29 L7 -22 L0 -15 L-7 -22 Z',fill:'#fff','aria-hidden':'true'}));
+      else pin.append(node('circle',{cx:0,cy:-23,r:3,fill:'#fff','aria-hidden':'true'}),node('path',{d:'M-5 -15 Q-5 -19 0 -19 Q5 -19 5 -15 Z',fill:'#fff','aria-hidden':'true'}));
+      const colocated = locations.find(location => location.coordinates === coordinateKey(entry)).entries;
+      if (colocated.length > 1 && colocated.at(-1).key === entry.key) {
         pin.append(node('circle',{cx:11,cy:-31,r:8,fill:'#333f36',stroke:'#fff','stroke-width':1,'aria-hidden':'true'}));
         const count = node('text',{x:11,y:-31,'text-anchor':'middle','dominant-baseline':'central','aria-hidden':'true'});
-        count.textContent = colocated.length;
-        pin.append(count);
+        count.textContent = colocated.length; pin.append(count);
       }
-      pin.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPopup(member, true); }
+      pin.addEventListener('keydown',event => {
+        if (event.key === 'Enter' || event.key === ' ') {event.preventDefault();openPopup(entry,true);}
       });
       pins.append(pin);
     }
@@ -162,6 +196,20 @@
     document.querySelector('#map-zoom-out').disabled = view.width >= world.width;
     positionPopup();
   }
+  function fitLocations() {
+    if (!locations.length) {reset();return;}
+    const xs = locations.map(location => location.x), ys = locations.map(location => location.y);
+    const rect = svg.getBoundingClientRect();
+    const width = Math.max(45,Math.max(...xs)-Math.min(...xs)+85,(Math.max(...ys)-Math.min(...ys)+85)*rect.width/rect.height);
+    setCamera(width,(Math.max(...xs)+Math.min(...xs))/2,(Math.max(...ys)+Math.min(...ys))/2);
+  }
+  function updateLayers() {
+    closePopup();updateLocations();
+    menu.value = 'all';fitLocations();
+  }
+  peopleFilter.addEventListener('change',updateLayers);
+  projectsFilter.addEventListener('change',updateLayers);
+  updateLocations();
   function setCamera(width, centerX, centerY) {
     const rect = svg.getBoundingClientRect();
     width = Math.max(3,Math.min(world.width,width));
@@ -193,9 +241,7 @@
     closePopup();
     if (menu.value === 'overview') { reset(); return; }
     if (menu.value === 'all') {
-      const rect = svg.getBoundingClientRect();
-      const width = Math.min(1080,Math.max(920,350*rect.width/rect.height));
-      setCamera(width,580,215);
+      fitLocations();
       return;
     }
     const location = locations.find(item => item.id === menu.value);
@@ -229,7 +275,7 @@
   const pointers = new Map();
   let gesture = null;
   let moved = false;
-  let clickedMember = null;
+  let clickedEntry = null;
   function beginGesture() {
     const points = [...pointers.values()];
     const rect = svg.getBoundingClientRect();
@@ -242,8 +288,8 @@
     event.preventDefault();
     if (!pointers.size) {
       moved=false;
-      clickedMember=event.target.closest('.map-pin')?.dataset.member || null;
-    } else { moved=true; clickedMember=null; }
+      clickedEntry=event.target.closest('.map-pin')?.dataset.entry || null;
+    } else { moved=true; clickedEntry=null; }
     pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
     svg.setPointerCapture(event.pointerId);
     beginGesture();
@@ -279,7 +325,7 @@
     canvas.classList.remove('is-dragging');
     suppressCompatibilityClick=true;
     if (!moved && event.type !== 'pointercancel') {
-      if (clickedMember) openPopup(members.find(member=>member.id===clickedMember),false);
+      if (clickedEntry) openPopup(entries.find(entry=>entry.key===clickedEntry),false);
       else closePopup();
     }
     gesture=null;
@@ -297,7 +343,7 @@
     } else if (event.key==='+' || event.key==='=') {event.preventDefault();zoomAt(.65);}
     else if (event.key==='-') {event.preventDefault();zoomAt(1/.65);}
   });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape' && activeMember) closePopup(true); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && activeEntry) closePopup(true); });
   new ResizeObserver(draw).observe(svg);
   reset();
 })();

@@ -76,3 +76,19 @@ For team feedback, use repository issues to record the page, requested change an
 ## Stanford ownership
 
 Transferred to https://github.com/stanford-developers/gefi-website on October 26, 2026 at the owner’s request. The public preview is https://stanford-developers.github.io/gefi-website/ . The repository remains public and requests no search indexing. Stanford organization administrators control repository settings; the coordinator retains editing access. The gefi.stanford.edu domain and current production website have not been changed.
+
+## Project map layer — October 31, 2026
+
+The Community map now includes People and Projects filters. People retain red pins and the person symbol; project sites use teal pins and a diamond. The project layer intentionally starts empty, pending approved project details. Do not publish sample projects.
+
+Add approved public project records to `assets/community-projects.json` and mirror the same array in the `community-project-data` script in `community.html`. This embedded copy lets the map keep working when the site is opened directly from disk. When serializing JSON into HTML, replace `<` with the literal JSON escape `\u003c` so a project description cannot terminate the script element. Each project record has:
+
+- `id`: a unique project slug; `name`: public project title.
+- `pi`: PI name as a string, or an array of PI names for co-led projects.
+- `timeline`: readable dates, such as a year range or start year followed by “ongoing”.
+- Optional `institution`, `summary`, `status` (defaults to Ongoing project), and `url` (http/https only).
+- `locations`: one or more research sites, each with its own unique `id`, `city`, `country`, numeric `longitude` and `latitude`, and optional `label` for the site/institution. A single multi-site project gets one pin per site, with the same project details.
+
+Use where the research takes place, rather than automatically using the PI's institutional base. City-level locations are enough. When project and person pins overlap, the popup selector exposes all visible entries at that location; filters can also separate the layers. Keyboard activation, dragging, zooming and touch gestures continue to work. Long project details scroll within the popup.
+
+The map shows public project information only. Never put participant locations, application responses, private contact details or unpublished sensitive research details in these records.

@@ -367,3 +367,23 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
   .map-canvas { height: 430px; aspect-ratio: auto; min-height: 0; }
 }
 .map-canvas { width: 100%; min-width: 0; }
+
+/* The project layer has a distinct color and diamond symbol, alongside people. */
+.map-layers { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 0; margin: 0 0 20px; border: 0; }
+.map-layers legend { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.map-layers label { display: flex; align-items: center; gap: 7px; min-height: 44px; font-size: 17px; cursor: pointer; }
+.map-layers input { width: 18px; height: 18px; margin: 0 3px 0 0; accent-color: #8c1515; }
+.map-layers input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.map-layer-symbol--member { color: #8c1515; }
+.map-layer-symbol--project { color: #00777e; }
+.map-layer-count { color: var(--muted); font-size: 15px; }
+.map-pin--project .map-pin-shape { fill: #00777e; }
+.map-pin--project:hover .map-pin-shape, .map-pin--project.is-selected .map-pin-shape { fill: #004c51; }
+.map-empty { font-size: 16px; padding: 12px 15px; border-left: 3px solid #00777e; background: #edf4f2; margin-bottom: 20px; }
+.map-empty[hidden] { display: none; }
+.project-tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .035em; text-transform: uppercase; background: #e0efed; color: #005b61; padding: 2px 7px; margin-top: 8px; }
+.member-popup { max-height: calc(100% - 20px); overflow-y: auto; overflow-wrap: anywhere; }
+.member-popup .popup-summary { margin-top: 10px; }
+.popup-project-link { display: block; font-size: 14px; margin-top: 12px; }
+
+.atlas-count span { display: block; }
