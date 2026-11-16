@@ -412,3 +412,8 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .study-facts dt { font-weight: 600; }
 .study-facts dd { margin: 0; }
 @media(max-width:600px) { .study-facts > div { grid-template-columns: 1fr; gap: 3px; } }
+
+.instrument-selector { margin: 24px 0; max-width: 620px; }
+.instrument-selector label { display: block; font-weight: 600; margin: 16px 0; }
+.instrument-selector select { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 8px 10px; color: var(--ink); background: white; border: 1px solid #777; font: inherit; }
+.selector-result ul { padding-left: 1.3em; }
