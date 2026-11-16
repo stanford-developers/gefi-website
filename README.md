@@ -100,3 +100,12 @@ The map includes public-source research projects; historical studies are labeled
 Members now have `roles: { foundingMember: true, steeringCommittee: false, workingGroups: [] }`. All 21 founders retain recognition. Set `steeringCommittee` to true only after appointment. Add a working-group name to `workingGroups` only after it is active; object entries `{ name: "Group name", active: false }` remain hidden. The shared `member-roles.js` renders multiple tags in map popups and founding-member cards. Never infer a GEFI role from an external institution's steering committee or advisory board.
 
 Keep the member array in `assets/community-members.json` synchronized with `community-member-data` in `community.html`, and the id/roles subset synchronized with `member-role-data` in `founding-members.html`. Keep project JSON synchronized as described above; always escape less-than characters before embedding JSON in HTML. Unconfirmed candidate projects and source notes are kept outside the public website in the sibling Project research audit folder.
+
+
+## OSF resource migration — November 16, 2026
+
+`effort.html` now hosts the five original public EFFORT files locally, plus the original ZIP. `assets/effort-downloads.json` records source paths, sizes and SHA-256 checksums. Files are unchanged; download filenames are simplified. The original EFFORT DOI and validation citation are retained. No license has been invented for the instrument release.
+
+`data.html` introduces five study collections with explicitly qualified availability and dates. `assets/study-catalog.json` contains the same public study descriptions. Response records, raw AMES exports, source codebooks, consent forms, internal migration notes, and credentials are excluded from the website. Bangladesh and LEVANTE were empty folders in the supplied export and are not presented as deposited collections. South Africa has documentation only.
+
+Redivis inputs, source inventory, duplicate-file checks and migration notes are stored outside this website in `99 Archive/OSF/Migration preparation 2026-11-16`. The first Redivis catalog is intended to contain study/resource metadata and the 74 English instrument records, not participant responses. New Redivis datasets must explicitly use `publicAccessLevel: none` and remain unreleased until reviewed. Do not advertise a Redivis dataset link until a real, accessible dataset exists.

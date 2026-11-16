@@ -1,0 +1,52 @@
+[
+  {
+    "study_id": "effort-argentina",
+    "title": "EFFORT and AMES pilot in Argentina",
+    "country": "Argentina",
+    "location": "Buenos Aires City",
+    "period": "2024 fieldwork; preparation December 2024–January 2025",
+    "measures": "EFFORT caregiver, teacher and assessor reports; AMES",
+    "status": "Preparing for Redivis",
+    "description": "A pilot combining culturally adapted EFFORT reports with AMES tasks in public preschools. The source narrative describes work with 4- and 5-year-old children."
+  },
+  {
+    "study_id": "effort-australia-sprouts",
+    "title": "SPROUTS Wave 1",
+    "country": "Australia",
+    "location": "New South Wales",
+    "period": "Wave 1 export; consent materials describe the 2024–2026 study",
+    "measures": "EFFORT reports; child and family context",
+    "status": "Preparing for Redivis",
+    "description": "Wave 1 material from the Study of Preschoolers’ Self-Regulation and Outcomes, Undertaking Transition to School. A published protocol describes the broader longitudinal study."
+  },
+  {
+    "study_id": "effort-haiti",
+    "title": "Haiti EFFORT and IDELA collection",
+    "country": "Haiti",
+    "location": "Haiti; local sites not specified in the export documentation reviewed",
+    "period": "Collection dates to confirm; source license dated 2024",
+    "measures": "EFFORT teacher and assessor reports; IDELA executive function; home environment",
+    "status": "Preparing for Redivis",
+    "description": "Linked teacher and assessor reports with executive-function assessment, demographic and home-environment tables."
+  },
+  {
+    "study_id": "effort-prolific",
+    "title": "EFFORT online caregiver-report collection",
+    "country": "Not specified in the export",
+    "location": "Online recruitment through Prolific; participant geography to confirm",
+    "period": "Collection dates to confirm",
+    "measures": "EFFORT caregiver reports; child age and sex",
+    "status": "Preparing for Redivis",
+    "description": "An online collection with a caregiver-report table and a linked child-demographic table. Participant country and collection dates are not specified in the accompanying files."
+  },
+  {
+    "study_id": "effort-south-africa",
+    "title": "South Africa EFFORT validation pilot",
+    "country": "South Africa",
+    "location": "Cape Town",
+    "period": "April–May 2024",
+    "measures": "EFFORT parent and assessor reports; tablet-based cognitive tasks",
+    "status": "Study documentation only",
+    "description": "EFFORT was included in a cognitive-development pilot in a low-income Cape Town community. This export contains a study description and consent materials, with no response-data tables."
+  }
+]

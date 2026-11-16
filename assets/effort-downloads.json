@@ -1,0 +1,52 @@
+[
+  {
+    "title": "English item bank and adaptation guidance",
+    "source_archive": "k3edb-osfstorage-archive.zip",
+    "source_path": "EFFORT OSF April 2026.xlsx",
+    "website_path": "assets/documents/effort/2026-04/effort-english-item-bank.xlsx",
+    "bytes": 196564,
+    "sha256": "450c6da4bb815b21c466066e8c2db5a9b7e12b17d697fb849a88b0a34425af29",
+    "format": "XLSX",
+    "modified": false
+  },
+  {
+    "title": "Argentina Spanish translation",
+    "source_archive": "k3edb-osfstorage-archive.zip",
+    "source_path": "EFFORT Translations/Argentina Spanish Translated EFFORT.xlsx",
+    "website_path": "assets/documents/effort/2026-04/effort-spanish-argentina.xlsx",
+    "bytes": 36687,
+    "sha256": "860683cba65bcd89ad9c10eb4beabf61d90e1242d00c0665d666011949eff851",
+    "format": "XLSX",
+    "modified": false
+  },
+  {
+    "title": "Bangla assessor report",
+    "source_archive": "k3edb-osfstorage-archive.zip",
+    "source_path": "EFFORT Translations/Bangla Assessor Report.pdf",
+    "website_path": "assets/documents/effort/2026-04/effort-bangla-assessor.pdf",
+    "bytes": 298237,
+    "sha256": "1cc56bf4d1d27d6d7f03c6b7b73cb0a9a318879a7b3916cb8226c6acf8df6e72",
+    "format": "PDF",
+    "modified": false
+  },
+  {
+    "title": "Bangla teacher report",
+    "source_archive": "k3edb-osfstorage-archive.zip",
+    "source_path": "EFFORT Translations/Bangla Teacher EFFORT.docx",
+    "website_path": "assets/documents/effort/2026-04/effort-bangla-teacher.docx",
+    "bytes": 35412,
+    "sha256": "bb44e3590bcaefa09f72986623d048b626a6c72f29d71d0c5059dbfc13da1524",
+    "format": "DOCX",
+    "modified": false
+  },
+  {
+    "title": "Bangla caregiver report",
+    "source_archive": "k3edb-osfstorage-archive.zip",
+    "source_path": "EFFORT Translations/Bangla Caregiver EFFORT.docx",
+    "website_path": "assets/documents/effort/2026-04/effort-bangla-caregiver.docx",
+    "bytes": 59137,
+    "sha256": "12e67431c8c527ce53fd2aa37e8667d9930c7d55a2aa9f0f6b22b3bf3495773c",
+    "format": "DOCX",
+    "modified": false
+  }
+]
