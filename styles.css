@@ -430,3 +430,12 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .popup-colocated-list button[aria-pressed=true] { background:#f1e6dd; font-weight:600; }
 .popup-colocated-list button:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
 @media(max-width:700px) { .committee-grid { grid-template-columns:1fr; } .committee-card img,.committee-photo-placeholder { width:70px;height:70px; } }
+
+/* Committee responsibilities and shared map profiles */
+.committee-responsibilities { max-width: 960px; }
+.committee-responsibilities h2 { margin-bottom: 22px; }
+.committee-responsibilities p { margin-bottom: 16px; }
+.popup-profiles { max-height: min(300px, 60vh); overflow-y: auto; overscroll-behavior: contain; padding: 6px 0; }
+.popup-profile { padding: 8px 0 15px; }
+.popup-profile + .popup-profile { border-top: 1px solid var(--line); padding-top: 18px; }
+.popup-profile .popup-name { padding-right: 12px; }

@@ -33,10 +33,6 @@
   const visibleEntries = () => entries.filter(entry => entry.type === 'member' ? peopleFilter.checked : projectsFilter.checked);
   const locationText = entry => [entry.label, entry.city, entry.country].filter(Boolean).join(', ');
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-  const projectSites = entries.filter(entry => entry.type === 'project');
-  document.querySelector('#project-layer-count').textContent = projects.length;
-  document.querySelector('#people-layer-count').textContent = members.length;
-  document.querySelector('#atlas-project-count').textContent = `${plural(projects.length, 'project')} · ${plural(projectSites.length, 'research location')}`;
   function updateLocations() {
     const selected = menu.value;
     locations = [];
@@ -103,66 +99,30 @@
     close.setAttribute('aria-label', entry.type === 'project' ? 'Close project details' : 'Close member profile');
     close.textContent = '×'; close.addEventListener('click',() => closePopup(true));
     popup.append(close);
-    if (entry.type === 'member' && entry.image) {
-      const image = document.createElement('img');
-      image.src = entry.image; image.alt = entry.name; image.width = 76; image.height = 76;
-      image.addEventListener('load',positionPopup,{once:true});
-      popup.append(image);
-    }
-    const name = document.createElement(entry.type === 'member' ? 'a' : 'h3');
-    name.className = 'popup-name'; name.textContent = entry.name;
-    if (entry.type === 'member') name.href = entry.profile;
-    popup.append(name);
-    if (entry.type === 'project') {
-      if (entry.pi) popup.append(paragraph(`${entry.leadLabel || "PI"}: ${Array.isArray(entry.pi) ? entry.pi.join(', ') : entry.pi}`));
-      if (entry.institution) popup.append(paragraph(entry.institution));
-      popup.append(paragraph(locationText(entry),'popup-city'));
-      if (entry.timeline) popup.append(paragraph(`Timeline: ${entry.timeline}`));
-      if (entry.locationNote) popup.append(paragraph(entry.locationNote,'popup-location-note'));
-      if (entry.summary) popup.append(paragraph(entry.summary,'popup-summary'));
-      const tag = document.createElement('span'); tag.className = 'project-tag';
-      tag.textContent = entry.status || 'Research project'; popup.append(tag);
-      // Public project links are optional and limited to ordinary web URLs.
-      if (/^https?:\/\//i.test(entry.url || '') && !entry.sources?.length) {
-        const link = document.createElement('a'); link.href = entry.url;
-        link.className = 'popup-project-link'; link.textContent = 'About this project ↗'; popup.append(link);
+    const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [entry];
+    // Put the selected pin first; the rest are directly accessible by scrolling.
+    const displayed = [entry, ...colocated.filter(item => item.key !== entry.key)];
+    const cards = document.createElement('div'); cards.className = 'popup-profiles';
+    cards.setAttribute('aria-label', 'Profiles at this location');
+    for (const item of displayed) {
+      const card = document.createElement('article'); card.className = 'popup-profile';
+      if (item.type === 'member' && item.image) {
+        const image = document.createElement('img');
+        image.src = item.image; image.alt = item.name; image.width = 76; image.height = 76;
+        image.addEventListener('load',positionPopup,{once:true}); card.append(image);
       }
-    } else {
-      popup.append(paragraph(entry.institution),paragraph(locationText(entry),'popup-city'));
-      popup.append(window.GEFIMemberRoles.render(entry));
-    }
-    if (entry.type === 'project' && entry.sources?.length) {
-      const sources = document.createElement('details'); sources.className = 'popup-sources';
-      const summary = document.createElement('summary'); summary.textContent = 'Project sources'; sources.append(summary);
-      const list = document.createElement('ul');
-      for (const source of entry.sources) {
-        if (!/^https?:\/\//i.test(source.url || '')) continue;
-        const item = document.createElement('li'); const link = document.createElement('a');
-        link.href = source.url; link.textContent = source.title; item.append(link); list.append(item);
+      const name = document.createElement('h3'); name.className = 'popup-name'; name.textContent = item.name; card.append(name);
+      if (item.type === 'project') {
+        if (item.pi) card.append(paragraph(`${item.leadLabel || 'PI'}: ${Array.isArray(item.pi) ? item.pi.join(', ') : item.pi}`));
+        card.append(paragraph(locationText(item),'popup-city'));
+        if (item.summary) card.append(paragraph(`Topic: ${item.summary}`,'popup-summary'));
+      } else {
+        card.append(paragraph(item.institution),paragraph(locationText(item),'popup-city'));
+        card.append(window.GEFIMemberRoles.render(item));
       }
-      sources.append(list); sources.addEventListener('toggle',positionPopup); popup.append(sources);
+      cards.append(card);
     }
-    const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [];
-    if (colocated.length > 1) {
-      const label = document.createElement('p'); label.className = 'popup-colocated-label';
-      const people = colocated.filter(item => item.type === 'member').length;
-      const sites = colocated.length-people;
-      label.textContent = [people ? `${people} ${people === 1 ? 'person' : 'people'}` : '',sites ? plural(sites,'project') : ''].filter(Boolean).join(' · ')+' at this location';
-      const list = document.createElement('div'); list.className = 'popup-colocated-list';
-      list.setAttribute('role','group'); list.setAttribute('aria-label','People and projects at this location');
-      for (const other of colocated) {
-        const button = document.createElement('button'); button.type='button';
-        button.textContent = `${other.type === 'project' ? 'Project' : 'Person'}: ${other.name}`;
-        button.setAttribute('aria-pressed',String(other.key === entry.key));
-        button.addEventListener('click',() => {
-          openPopup(other,false);
-          const selected = popup.querySelector('.popup-colocated-list [aria-pressed="true"]');
-          selected?.focus({preventScroll:true});
-        });
-        list.append(button);
-      }
-      popup.append(label,list);
-    }
+    popup.append(cards);
     popup.hidden = false;
     for (const pin of pins.querySelectorAll('.map-pin')) {
       const active = pin.dataset.entry === entry.key;
