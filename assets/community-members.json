@@ -31,7 +31,7 @@
     "profile": "founding-members.html#lucia-alcala",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -49,7 +49,7 @@
     "profile": "founding-members.html#sara-baker",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -103,7 +103,7 @@
     "profile": "founding-members.html#sabine-doebel",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -193,7 +193,7 @@
     "profile": "founding-members.html#cristine-legare",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -211,7 +211,7 @@
     "profile": "founding-members.html#sebastian-lipina",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -229,7 +229,7 @@
     "profile": "founding-members.html#mateus-mazzaferro",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -265,7 +265,7 @@
     "profile": "founding-members.html#dana-miller-cotto",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -283,7 +283,7 @@
     "profile": "founding-members.html#yuko-munakata",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -301,7 +301,7 @@
     "profile": "founding-members.html#jelena-obradovic",
     "roles": {
       "foundingMember": true,
-      "steeringCommittee": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   },
@@ -374,6 +374,23 @@
     "roles": {
       "foundingMember": true,
       "steeringCommittee": false,
+      "workingGroups": []
+    }
+  },
+  {
+    "id": "paulo-laurence",
+    "name": "Paulo Laurence",
+    "institution": "Federal University of ABC",
+    "location": "santo-andre",
+    "city": "Santo André",
+    "country": "Brazil",
+    "longitude": -46.5333,
+    "latitude": -23.6639,
+    "image": null,
+    "profile": "steering-committee.html#paulo-laurence",
+    "roles": {
+      "foundingMember": false,
+      "steeringCommittee": true,
       "workingGroups": []
     }
   }

@@ -103,7 +103,7 @@
     close.setAttribute('aria-label', entry.type === 'project' ? 'Close project details' : 'Close member profile');
     close.textContent = '×'; close.addEventListener('click',() => closePopup(true));
     popup.append(close);
-    if (entry.type === 'member') {
+    if (entry.type === 'member' && entry.image) {
       const image = document.createElement('img');
       image.src = entry.image; image.alt = entry.name; image.width = 76; image.height = 76;
       image.addEventListener('load',positionPopup,{once:true});
@@ -144,19 +144,24 @@
     }
     const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [];
     if (colocated.length > 1) {
-      const label = document.createElement('label'); label.className = 'popup-colocated-label';
-      label.htmlFor = 'colocated-entry';
+      const label = document.createElement('p'); label.className = 'popup-colocated-label';
       const people = colocated.filter(item => item.type === 'member').length;
       const sites = colocated.length-people;
       label.textContent = [people ? `${people} ${people === 1 ? 'person' : 'people'}` : '',sites ? plural(sites,'project') : ''].filter(Boolean).join(' · ')+' at this location';
-      const picker = document.createElement('select'); picker.id = 'colocated-entry';
-      for (const other of colocated) picker.append(new Option(`${other.type === 'project' ? 'Project' : 'Person'}: ${other.name}`,other.key));
-      picker.value = entry.key;
-      picker.addEventListener('change',() => {
-        openPopup(entries.find(other => other.key === picker.value),false);
-        popup.querySelector('select')?.focus();
-      });
-      popup.append(label,picker);
+      const list = document.createElement('div'); list.className = 'popup-colocated-list';
+      list.setAttribute('role','group'); list.setAttribute('aria-label','People and projects at this location');
+      for (const other of colocated) {
+        const button = document.createElement('button'); button.type='button';
+        button.textContent = `${other.type === 'project' ? 'Project' : 'Person'}: ${other.name}`;
+        button.setAttribute('aria-pressed',String(other.key === entry.key));
+        button.addEventListener('click',() => {
+          openPopup(other,false);
+          const selected = popup.querySelector('.popup-colocated-list [aria-pressed="true"]');
+          selected?.focus({preventScroll:true});
+        });
+        list.append(button);
+      }
+      popup.append(label,list);
     }
     popup.hidden = false;
     for (const pin of pins.querySelectorAll('.map-pin')) {
