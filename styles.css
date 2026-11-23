@@ -452,3 +452,14 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .working-group-cta:hover { background:#651010; color:white; }
 
 .effort-form { display: block; width: 100%; height: 2800px; border: 0; }
+
+.ames-phone { display: flex; align-items: flex-start; gap: 20px; margin: 28px 0 20px; }
+.ames-icon { width: 80px; height: 80px; border: 1px solid #e2ded8; border-radius: 16px; flex: 0 0 auto; }
+.ames-phone h3 { margin: 0 0 8px; }
+.ames-phone p { margin: 0 0 12px; }
+.ames-store-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-weight: 600; }
+.ames-screenshots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 850px; margin: 20px 0; }
+.ames-screenshots figure { margin: 0; }
+.ames-screenshots img { display: block; width: 100%; height: auto; border: 1px solid #e2ded8; }
+.ames-screenshots figcaption { margin-top: 6px; font-size: .85rem; color: #615e59; }
+@media (max-width: 520px) { .ames-screenshots { grid-template-columns: 1fr; } }
