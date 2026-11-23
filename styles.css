@@ -439,3 +439,14 @@ select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .popup-profile { padding: 8px 0 15px; }
 .popup-profile + .popup-profile { border-top: 1px solid var(--line); padding-top: 18px; }
 .popup-profile .popup-name { padding-right: 12px; }
+
+/* Publication citations and sorting */
+.publication-toolbar { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:16px 30px; margin-bottom:24px; }
+.publication-toolbar h2 { margin:0; }
+.publication-toolbar label { font-weight:600; }
+.publication-toolbar select { margin-left:8px; min-height:42px; padding:6px 10px; font:inherit; background:white; border:1px solid #777; color:var(--ink); }
+.publication-references { list-style:none; padding:0; }
+.publication-references li { padding-left:1.6em; text-indent:-1.6em; margin:0 0 24px; overflow-wrap:anywhere; }
+
+.working-group-cta { display:inline-block; padding:12px 20px; background:#8c1515; color:white; font-weight:700; text-decoration:none; }
+.working-group-cta:hover { background:#651010; color:white; }

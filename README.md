@@ -113,3 +113,10 @@ Redivis inputs, source inventory, duplicate-file checks and migration notes are 
 ## Steering Committee update — November 2026
 
 The 10 confirmed committee members appear on the committee page and their map badges. Paulo Laurence is a committee member and is not a founding member. His institutional affiliation and city are based on his public ORCID and ResearchGate profiles; request a verified portrait. The map includes a scrollable list for overlapping entries. Keep member JSON, the map embed, and founder role data synchronized.
+
+
+## November 2026: working groups, instrument license, and publications
+
+The top navigation links to `working-groups.html`, with the established proposal form. EFFORT pages identify GEFI instrument materials as CC BY 4.0. Existing external datasets retain their own supplied licenses and access conditions; do not change third-party dataset rights based solely on the instrument license.
+
+`readings.html` retains the introductory questions and selected readings. `publications.html` contains the 39 prior bibliography entries plus four featured articles; it supports client-side sorting using `publications-sort.js` and remains readable without JavaScript. The legacy `readings.html#references` anchor points to the publications list.
