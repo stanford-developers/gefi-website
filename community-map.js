@@ -6,15 +6,19 @@
   const members = JSON.parse(source.textContent);
   const projects = JSON.parse(document.querySelector('#community-project-data')?.textContent || '[]');
   const entries = members.map(member => ({...member, type:'member', key:`member:${member.id}`}));
-  // A project has one record and may have several research sites. Its PI's base
-  // does not imply where the project takes place.
+  // Each project has one representative pin, with all of its research sites in the popup.
   for (const project of projects) {
-    for (const site of project.locations || []) {
-      if (!Number.isFinite(site.longitude) || !Number.isFinite(site.latitude) ||
-          Math.abs(site.longitude) > 180 || Math.abs(site.latitude) > 90) continue;
-      entries.push({...project, ...site, id:project.id, type:'project',
-        key:`project:${project.id}:${site.id}`, location:`project-${project.id}-${site.id}`});
-    }
+    const sites = (project.locations || []).filter(site =>
+      Number.isFinite(site.longitude) && Number.isFinite(site.latitude) &&
+      Math.abs(site.longitude) <= 180 && Math.abs(site.latitude) <= 90);
+    if (!sites.length) continue;
+    const country = sites.every(site => site.country === sites[0].country) ? sites[0].country : '';
+    const longitude = sites.reduce((sum, site) => sum + site.longitude, 0) / sites.length;
+    const latitude = sites.reduce((sum, site) => sum + site.latitude, 0) / sites.length;
+    entries.push({...project, ...sites[0], longitude, latitude,
+      city:sites.length > 1 ? 'Multiple sites' : sites[0].city, country,
+      siteNames:sites.map(site => [site.city, site.country].filter(Boolean).join(', ')),
+      id:project.id, type:'project', key:`project:${project.id}`, location:`project-${project.id}`});
   }
   const menu = document.querySelector('#member-location');
   const pins = document.querySelector('#map-pins');
@@ -99,9 +103,7 @@
     close.setAttribute('aria-label', entry.type === 'project' ? 'Close project details' : 'Close member profile');
     close.textContent = '×'; close.addEventListener('click',() => closePopup(true));
     popup.append(close);
-    const colocated = locations.find(location => location.coordinates === coordinateKey(entry))?.entries || [entry];
-    // Put the selected pin first; the rest are directly accessible by scrolling.
-    const displayed = [entry, ...colocated.filter(item => item.key !== entry.key)];
+    const displayed = [entry];
     const cards = document.createElement('div'); cards.className = 'popup-profiles';
     cards.setAttribute('aria-label', 'Profiles at this location');
     for (const item of displayed) {
@@ -114,7 +116,7 @@
       const name = document.createElement('h3'); name.className = 'popup-name'; name.textContent = item.name; card.append(name);
       if (item.type === 'project') {
         if (item.pi) card.append(paragraph(`${item.leadLabel || 'PI'}: ${Array.isArray(item.pi) ? item.pi.join(', ') : item.pi}`));
-        card.append(paragraph(locationText(item),'popup-city'));
+        card.append(paragraph(item.siteNames.join(' · '),'popup-city'));
         if (item.summary) card.append(paragraph(`Topic: ${item.summary}`,'popup-summary'));
       } else {
         card.append(paragraph(item.institution),paragraph(locationText(item),'popup-city'));
@@ -140,11 +142,24 @@
     const scale = rect.width/view.width;
     placements = []; pins.replaceChildren();
     const shown = visibleEntries();
-    // Project symbols sit above people; the shared-location picker keeps both accessible.
+    // Spread symbols in screen space, recomputing on zoom or pan. Geographic
+    // coordinates and popup locations remain unchanged; offsets only affect display.
+    const occupied = [];
     for (const entry of shown) {
-      const x = (entry.longitude+180)*3, y = (85-entry.latitude)*3;
-      if (x < view.x || x > view.x+view.width || y < view.y || y > view.y+view.height) continue;
-      placements.push({entry,x,y,px:(x-view.x)*scale,py:(y-view.y)*scale});
+      const trueX = (entry.longitude+180)*3, trueY = (85-entry.latitude)*3;
+      const baseX = (trueX-view.x)*scale, baseY = (trueY-view.y)*scale;
+      let px = baseX, py = baseY, step = 0;
+      while (occupied.some(p => Math.hypot(p.x-px, p.y-py) < 38)) {
+        step++;
+        const radius = 38*Math.sqrt(step);
+        const angle = step * 2.399963229728653;
+        px = baseX + radius*Math.cos(angle);
+        py = baseY + radius*Math.sin(angle);
+      }
+      occupied.push({x:px,y:py});
+      const x = view.x+px/scale, y = view.y+py/scale;
+      if (px < -40 || px > rect.width+40 || py < -40 || py > rect.height+40) continue;
+      placements.push({entry,x,y,px,py});
       const active = activeEntry?.key === entry.key;
       const pin = node('g',{
         transform:`translate(${x} ${y}) scale(${1/scale})`,
@@ -158,12 +173,6 @@
       pin.append(tooltip,node('path',{d:'M0 0 C-3 -5 -12 -12 -12 -20 A12 12 0 1 1 12 -20 C12 -12 3 -5 0 0Z',class:'map-pin-shape'}));
       if (entry.type === 'project') pin.append(node('path',{d:'M0 -29 L7 -22 L0 -15 L-7 -22 Z',fill:'#fff','aria-hidden':'true'}));
       else pin.append(node('circle',{cx:0,cy:-23,r:3,fill:'#fff','aria-hidden':'true'}),node('path',{d:'M-5 -15 Q-5 -19 0 -19 Q5 -19 5 -15 Z',fill:'#fff','aria-hidden':'true'}));
-      const colocated = locations.find(location => location.coordinates === coordinateKey(entry)).entries;
-      if (colocated.length > 1 && colocated.at(-1).key === entry.key) {
-        pin.append(node('circle',{cx:11,cy:-31,r:8,fill:'#333f36',stroke:'#fff','stroke-width':1,'aria-hidden':'true'}));
-        const count = node('text',{x:11,y:-31,'text-anchor':'middle','dominant-baseline':'central','aria-hidden':'true'});
-        count.textContent = colocated.length; pin.append(count);
-      }
       pin.addEventListener('keydown',event => {
         if (event.key === 'Enter' || event.key === ' ') {event.preventDefault();openPopup(entry,true);}
       });
