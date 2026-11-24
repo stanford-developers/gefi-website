@@ -5,7 +5,7 @@
   if (!svg || !source) return;
   const members = JSON.parse(source.textContent);
   const projects = JSON.parse(document.querySelector('#community-project-data')?.textContent || '[]');
-  const entries = members.map(member => ({...member, type:'member', key:`member:${member.id}`}));
+  const entries = members.filter(member => Number.isFinite(member.longitude) && Number.isFinite(member.latitude)).map(member => ({...member, type:'member', key:`member:${member.id}`}));
   // Each project has one representative pin, with all of its research sites in the popup.
   for (const project of projects) {
     const sites = (project.locations || []).filter(site =>
