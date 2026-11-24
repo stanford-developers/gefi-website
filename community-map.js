@@ -104,11 +104,9 @@
     close.setAttribute('aria-label', entry.type === 'project' ? 'Close project details' : 'Close member profile');
     close.textContent = '×'; close.addEventListener('click',() => closePopup(true));
     popup.append(close);
-    const group = placements.find(placement => placement.entry.key === entry.key)?.entries || [entry];
-    const displayed = [entry, ...group.filter(item => item.key !== entry.key)];
+    const displayed = [entry];
     const cards = document.createElement('div'); cards.className = 'popup-profiles';
-    cards.setAttribute('aria-label', group.length > 1 ? 'People and projects at nearby locations' : 'Location details');
-    if (group.length > 1) cards.tabIndex = 0;
+    cards.setAttribute('aria-label', 'Location details');
     for (const item of displayed) {
       const card = document.createElement('article'); card.className = 'popup-profile';
       if (item.type === 'member' && item.image) {
@@ -145,43 +143,48 @@
     const scale = rect.width/view.width;
     placements = []; pins.replaceChildren();
     const shown = visibleEntries();
-    // At broad zoom levels, nearby locations share one numbered marker rather
-    // than being displaced far from their actual coordinates. Zooming separates
-    // the group automatically; its popup provides access to every item.
-    const groups = [];
-    for (const entry of shown) {
-      const x = (entry.longitude+180)*3, y = (85-entry.latitude)*3;
-      const px = (x-view.x)*scale, py = (y-view.y)*scale;
-      let group = groups.find(item => Math.abs(item.px-px) < 18 && Math.abs(item.py-py) < 24);
-      if (!group) {
-        group = {entry, x, y, px, py, entries:[]};
-        groups.push(group);
+    // Offset only crowded pins and cap the screen-space shift at 12 pixels.
+    // The actual coordinates and popup location are never changed.
+    const occupied = [];
+    const offsets = [{dx:0,dy:0}];
+    for (let y = -12; y <= 12; y += 3) {
+      for (let x = -12; x <= 12; x += 3) {
+        if ((x || y) && Math.hypot(x,y) <= 12) offsets.push({dx:x,dy:y});
       }
-      group.entries.push(entry);
     }
-    for (const group of groups) {
-      const {entry, x, y, px, py} = group;
+    offsets.sort((a,b) => Math.hypot(a.dx,a.dy)-Math.hypot(b.dx,b.dy));
+    for (const entry of shown) {
+      const trueX = (entry.longitude+180)*3, trueY = (85-entry.latitude)*3;
+      const baseX = (trueX-view.x)*scale, baseY = (trueY-view.y)*scale;
+      let best = offsets[0], bestScore = Infinity;
+      for (const offset of offsets) {
+        const px = baseX + offset.dx, py = baseY + offset.dy;
+        // A marker is roughly 17 by 23 pixels at this size. Prefer the least
+        // overlap, then the smallest displacement from the actual location.
+        const overlap = occupied.reduce((sum, p) =>
+          sum + Math.max(0, 18-Math.abs(px-p.x)) * Math.max(0, 24-Math.abs(py-p.y)), 0);
+        const score = overlap*100 + Math.hypot(offset.dx,offset.dy);
+        if (score < bestScore) { bestScore = score; best = offset; }
+        if (score === 0) break;
+      }
+      const px = baseX + best.dx, py = baseY + best.dy;
+      occupied.push({x:px,y:py});
+      const x = view.x + px/scale, y = view.y + py/scale;
       if (px < -30 || px > rect.width+30 || py < -30 || py > rect.height+30) continue;
-      placements.push(group);
+      placements.push({entry,x,y,px,py});
       const active = activeEntry?.key === entry.key;
       const pin = node('g',{
         transform:`translate(${x} ${y}) scale(${0.72/scale})`,
         class:`map-pin map-pin--${entry.type}${active?' is-selected':''}`, role:'button',tabindex:'0',
-        'aria-label':group.entries.length > 1 ? `${group.entries.length} nearby locations — ${locationText(entry)}` : `${entry.type === 'project' ? 'Project' : 'Person'}: ${entry.name} — ${locationText(entry)}`,
+        'aria-label':`${entry.type === 'project' ? 'Project' : 'Person'}: ${entry.name} — ${locationText(entry)}`,
         'aria-expanded':String(active),'aria-controls':'member-popup','aria-haspopup':'dialog',
         'data-entry':entry.key, [`data-${entry.type}`]:entry.id,
         'data-longitude':entry.longitude,'data-latitude':entry.latitude
       });
       const tooltip = node('title',{}); tooltip.textContent = `${entry.name} · ${entry.city}`;
       pin.append(tooltip,node('path',{d:'M0 0 C-3 -5 -12 -12 -12 -20 A12 12 0 1 1 12 -20 C12 -12 3 -5 0 0Z',class:'map-pin-shape'}));
-      if (group.entries.length > 1) {
-        const count = node('text',{x:0,y:-21,'text-anchor':'middle','dominant-baseline':'central','aria-hidden':'true'});
-        count.textContent = group.entries.length; pin.append(count);
-      } else if (entry.type === 'project') {
-        pin.append(node('path',{d:'M0 -29 L7 -22 L0 -15 L-7 -22 Z',fill:'#fff','aria-hidden':'true'}));
-      } else {
-        pin.append(node('circle',{cx:0,cy:-23,r:3,fill:'#fff','aria-hidden':'true'}),node('path',{d:'M-5 -15 Q-5 -19 0 -19 Q5 -19 5 -15 Z',fill:'#fff','aria-hidden':'true'}));
-      }
+      if (entry.type === 'project') pin.append(node('path',{d:'M0 -29 L7 -22 L0 -15 L-7 -22 Z',fill:'#fff','aria-hidden':'true'}));
+      else pin.append(node('circle',{cx:0,cy:-23,r:3,fill:'#fff','aria-hidden':'true'}),node('path',{d:'M-5 -15 Q-5 -19 0 -19 Q5 -19 5 -15 Z',fill:'#fff','aria-hidden':'true'}));
       pin.addEventListener('keydown',event => {
         if (event.key === 'Enter' || event.key === ' ') {event.preventDefault();openPopup(entry,true);}
       });
