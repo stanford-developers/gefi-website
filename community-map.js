@@ -141,6 +141,7 @@
     view.y += (view.height-height)/2; view.height = height;
     svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.width} ${view.height}`);
     const scale = rect.width/view.width;
+    const pinSize = Math.min(1.4, 0.72 + Math.max(0, Math.log2(920/view.width)) * 0.18);
     placements = []; pins.replaceChildren();
     const shown = visibleEntries();
     // Offset only crowded pins and cap the screen-space shift at 12 pixels.
@@ -162,7 +163,7 @@
         // A marker is roughly 17 by 23 pixels at this size. Prefer the least
         // overlap, then the smallest displacement from the actual location.
         const overlap = occupied.reduce((sum, p) =>
-          sum + Math.max(0, 18-Math.abs(px-p.x)) * Math.max(0, 24-Math.abs(py-p.y)), 0);
+          sum + Math.max(0, 25*pinSize-Math.abs(px-p.x)) * Math.max(0, 34*pinSize-Math.abs(py-p.y)), 0);
         const score = overlap*100 + Math.hypot(offset.dx,offset.dy);
         if (score < bestScore) { bestScore = score; best = offset; }
         if (score === 0) break;
@@ -174,7 +175,7 @@
       placements.push({entry,x,y,px,py});
       const active = activeEntry?.key === entry.key;
       const pin = node('g',{
-        transform:`translate(${x} ${y}) scale(${0.72/scale})`,
+        transform:`translate(${x} ${y}) scale(${pinSize/scale})`,
         class:`map-pin map-pin--${entry.type}${active?' is-selected':''}`, role:'button',tabindex:'0',
         'aria-label':`${entry.type === 'project' ? 'Project' : 'Person'}: ${entry.name} — ${locationText(entry)}`,
         'aria-expanded':String(active),'aria-controls':'member-popup','aria-haspopup':'dialog',
