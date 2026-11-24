@@ -117,6 +117,7 @@
       const name = document.createElement('h3'); name.className = 'popup-name'; name.textContent = item.name; card.append(name);
       if (item.type === 'project') {
         if (item.pi) card.append(paragraph(`${item.leadLabel || 'PI'}: ${Array.isArray(item.pi) ? item.pi.join(', ') : item.pi}`));
+        if (item.institution) card.append(paragraph(item.institution));
         card.append(paragraph(item.siteNames.join(' · '),'popup-city'));
         if (item.summary) card.append(paragraph(`Topic: ${item.summary}`,'popup-summary'));
       } else {
